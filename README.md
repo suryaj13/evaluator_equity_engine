@@ -16,3 +16,18 @@ A Python-based poker engine that evaluates hand strength and calculates equity t
 - CLI or Web UI integration ready
 
 ## 📁 Project Structure
+
+```text
+poker-equity-engine/
+├── evaluator/  # Hand parsing and evaluation
+│   ├── hand.py
+│   └── evaluator.py
+├── equity/  # Hand equity simulation logic
+│   ├── simulator.py
+│   └── equity_calc.py
+├── tests/
+│   ├── test_evaluator.py
+│   └── test_equity.py
+├── examples/
+│   └── run_simulation.py
+└── README.md
