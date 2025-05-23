@@ -1,33 +1,43 @@
-# ♠️ Poker Hand Equity & Evaluation Engine
+# ♠️ Texas Hold'em Hand Evaluator & Equity Engine
 
-A Python-based poker engine that evaluates hand strength and calculates equity through Monte Carlo simulations. Designed for scalability, testing, and integration into poker tools or bots.
+This project is a Python-based poker engine designed for evaluating and comparing 7-card Texas Hold'em hands. It also includes a Monte Carlo equity simulator to calculate win/tie/loss probabilities given any number of players and a board.
 
-## 🎯 Features
-- Evaluate 5-card and 7-card poker hands
-- Classify hands (Straight, Flush, Full House, etc.)
-- Run equity simulations against 1+ random opponents
-- Simulate unknown board cards
-- Return win/tie/loss probabilities with customizable runs
+## 🧠 What It Does
 
-## 🧠 Technologies
-- Python 3.10+
-- NumPy (for performance)
-- Pytest (for testing)
-- CLI or Web UI integration ready
+- Computes the best 5-card hand from 7 cards (2 hole cards + 5 community cards)
+- Classifies hand types: Straight, Flush, Full House, etc.
+- Compares two or more players to determine the winner(s)
+- Runs thousands of simulations to calculate equity for each hand
+
+## 🎮 Why Use This?
+
+This tool is ideal for:
+- Learning how poker hand evaluation works under the hood
+- Building poker bots or analysis tools
+- Running custom equity calculations for specific game states
+- Practicing algorithm design and simulation in Python
+
+## ⚙️ Technologies
+
+- Python 3
+- `itertools` for combinatorics
+- `collections.Counter` for frequency analysis
+- (Planned) NumPy for faster simulation
+- `pytest` for unit testing
 
 ## 📁 Project Structure
 
 ```text
 poker-equity-engine/
-├── evaluator/  # Hand parsing and evaluation
+├── evaluator/           # All logic for parsing and evaluating hands
 │   ├── hand.py
-│   └── evaluator.py
-├── equity/  # Hand equity simulation logic
-│   ├── simulator.py
-│   └── equity_calc.py
-├── tests/
+│   ├── evaluator.py
+│   └── __init__.py
+├── equity/              # Simulation & probability logic
+│   ├── equity_calc.py
+│   └── simulator.py
+├── tests/               # Test suite
 │   ├── test_evaluator.py
 │   └── test_equity.py
-├── examples/
-│   └── run_simulation.py
-└── README.md
+├── main.py              # Optional CLI entry point
+├── README.md</file>

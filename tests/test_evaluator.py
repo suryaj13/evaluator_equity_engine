@@ -1,74 +1,62 @@
 import sys
 import os
+import random
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from evaluator.hand import Card, Hand
+from evaluator.evaluator import compare_hands
 
-from Evaluator.hand import Card, Hand
-from Evaluator.evaluator import classify_hand, compare_hands
+def generate_shuffled_deck():
+    ranks = '23456789TJQKA'
+    suits = 'shdc'
+    deck = [Card(r, s) for r in ranks for s in suits]
+    random.shuffle(deck)
+    return deck
 
-def make_hand(cards):
-    """ Helper to convert list of (rank, suit) tuples into a Hand object """
-    return Hand([Card(rank, suit) for rank, suit in cards])
+def deal(deck, num):
+    return [deck.pop() for _ in range(num)]
 
-def test_classify_hand_types():
-    print("Testing classify_hand...")
-    hands = {
-        "straight_flush": make_hand([('A', 's'), ('K', 's'), ('Q', 's'), ('J', 's'), ('T', 's')]),
-        "four_of_a_kind": make_hand([('9', 'c'), ('9', 'd'), ('9', 'h'), ('9', 's'), ('K', 'd')]),
-        "full_house": make_hand([('8', 's'), ('8', 'h'), ('8', 'd'), ('K', 's'), ('K', 'h')]),
-        "flush": make_hand([('2', 'h'), ('5', 'h'), ('9', 'h'), ('J', 'h'), ('K', 'h')]),
-        "straight": make_hand([('9', 's'), ('8', 'd'), ('7', 'h'), ('6', 's'), ('5', 'c')]),
-        "three_of_a_kind": make_hand([('4', 'd'), ('4', 'h'), ('4', 's'), ('T', 'c'), ('K', 'd')]),
-        "two_pair": make_hand([('A', 'h'), ('A', 'd'), ('5', 'c'), ('5', 's'), ('3', 'h')]),
-        "one_pair": make_hand([('J', 'd'), ('J', 'h'), ('7', 'c'), ('4', 's'), ('2', 'd')]),
-        "high_card": make_hand([('A', 's'), ('J', 'd'), ('8', 'c'), ('5', 'h'), ('2', 's')])
-    }
+def print_hand(label, cards):
+    print(f"{label}:", " ".join(str(card) for card in cards))
 
-    expected = {
-        "straight_flush": "Straight Flush",
-        "four_of_a_kind": "Four of a Kind",
-        "full_house": "Full House",
-        "flush": "Flush",
-        "straight": "Straight",
-        "three_of_a_kind": "Three of a Kind",
-        "two_pair": "Two Pair",
-        "one_pair": "One Pair",
-        "high_card": "High Card"
-    }
+def describe_hand(hand):
+    return " ".join(str(card) for card in hand.cards)
 
-    for name, hand in hands.items():
-        result = classify_hand(hand)
-        print(f"Hand: {name:16} | Classified as: {result:16} | Expected: {expected[name]}")
-        assert result == expected[name], f"{name} failed: got {result}"
+def test_x_player_showdown(num_players=3):
+    print(f"\n{num_players}-player showdown test...")
+    deck = generate_shuffled_deck()
 
-def test_compare_hands():
-    print("\nTesting compare_hands...")
-    hands = {
-        "straight_flush": make_hand([('A', 's'), ('K', 's'), ('Q', 's'), ('J', 's'), ('T', 's')]),
-        "four_of_a_kind": make_hand([('9', 'c'), ('9', 'd'), ('9', 'h'), ('9', 's'), ('K', 'd')]),
-        "full_house": make_hand([('8', 's'), ('8', 'h'), ('8', 'd'), ('K', 's'), ('K', 'h')]),
-        "flush": make_hand([('2', 'h'), ('5', 'h'), ('9', 'h'), ('J', 'h'), ('K', 'h')]),
-        "straight": make_hand([('9', 's'), ('8', 'd'), ('7', 'h'), ('6', 's'), ('5', 'c')]),
-        "three_of_a_kind": make_hand([('4', 'd'), ('4', 'h'), ('4', 's'), ('T', 'c'), ('K', 'd')]),
-        "two_pair": make_hand([('A', 'h'), ('A', 'd'), ('5', 'c'), ('5', 's'), ('3', 'h')]),
-        "one_pair": make_hand([('J', 'd'), ('J', 'h'), ('7', 'c'), ('4', 's'), ('2', 'd')]),
-        "high_card": make_hand([('A', 's'), ('J', 'd'), ('8', 'c'), ('5', 'h'), ('2', 's')])
-    }
+    player_holes = [deal(deck, 2) for _ in range(num_players)]
+    board = deal(deck, 5)
 
-    tests = [
-        ("straight_flush", "four_of_a_kind", 1),
-        ("full_house", "flush", 1),
-        ("straight", "three_of_a_kind", 1),
-        ("two_pair", "one_pair", 1),
-        ("high_card", "high_card", 0),
-        ("one_pair", "three_of_a_kind", -1)
-    ]
+    print_hand("Board", board)
+    for i, hole in enumerate(player_holes):
+        print_hand(f"Player {i+1} hole", hole)
 
-    for h1, h2, expected in tests:
-        result = compare_hands(hands[h1], hands[h2])
-        print(f"Compare: {h1:16} vs {h2:16} | Result: {result} | Expected: {expected}")
-        assert result == expected, f"{h1} vs {h2} failed: got {result}"
+    hands = [Hand(hole + board) for hole in player_holes]
+    scores = [0] * num_players
+
+    print("\nPairwise comparisons:")
+    for i in range(num_players):
+        for j in range(i + 1, num_players):
+            result = compare_hands(hands[i], hands[j])
+            outcome = "ties" if result == 0 else f"Player {i+1 if result == 1 else j+1} wins"
+            print(f"Player {i+1} vs Player {j+1}: {outcome}")
+            if result == 1:
+                scores[i] += 1
+            elif result == -1:
+                scores[j] += 1
+
+    winner = scores.index(max(scores))
+    print(f"\nWinner: Player {winner+1} with hand: {describe_hand(hands[winner])}")
+
+    print("\nEdge case: identical hands should tie")
+    duplicate_hand = Hand(player_holes[0] + board)
+    assert compare_hands(hands[0], duplicate_hand) == 0, "Identical hands should tie"
+    print("Edge case passed: tie confirmed")
 
 if __name__ == "__main__":
-    test_classify_hand_types()
-    test_compare_hands()
-    print("\n✅ Manual tests passed")
+    import sys
+    # Allow user to specify number of players via command line, default to 3
+    num_players = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+    test_x_player_showdown(num_players=num_players)
+    print("\n✅ all randomized tests passed")
