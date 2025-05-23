@@ -18,7 +18,6 @@ def deal(deck, num):
 def print_hand(label, cards):
     print(f"{label}:", " ".join(str(card) for card in cards))
 
-from evaluator.evaluator import classify_hand
 
 def describe_hand(hand):
     # Use evaluator to classify
