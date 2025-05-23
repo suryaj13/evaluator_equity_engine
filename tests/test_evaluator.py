@@ -3,7 +3,7 @@ import os
 import random
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from evaluator.hand import Card, Hand
-from evaluator.evaluator import compare_hands
+from evaluator.evaluator import compare_hands, classify_hand
 
 def generate_shuffled_deck():
     ranks = '23456789TJQKA'
@@ -18,8 +18,19 @@ def deal(deck, num):
 def print_hand(label, cards):
     print(f"{label}:", " ".join(str(card) for card in cards))
 
+from evaluator.evaluator import classify_hand
+
 def describe_hand(hand):
-    return " ".join(str(card) for card in hand.cards)
+    # Use evaluator to classify
+    try:
+        label = classify_hand(hand)
+    except:
+        label = "Unknown"
+    best_five = hand.cards[:5]  # fallback
+
+    if hasattr(hand, 'five_card_hand') and hasattr(hand.five_card_hand, 'cards'):
+        best_five = hand.five_card_hand.cards
+    return f"{label}: {' '.join(str(card) for card in best_five)}"
 
 def test_x_player_showdown(num_players=3):
     print(f"\n{num_players}-player showdown test...")
@@ -40,7 +51,10 @@ def test_x_player_showdown(num_players=3):
         for j in range(i + 1, num_players):
             result = compare_hands(hands[i], hands[j])
             outcome = "ties" if result == 0 else f"Player {i+1 if result == 1 else j+1} wins"
-            print(f"Player {i+1} vs Player {j+1}: {outcome}")
+            print(
+                f"Player {i+1} ({describe_hand(hands[i])}) vs "
+                f"Player {j+1} ({describe_hand(hands[j])}): {outcome}"
+            )
             if result == 1:
                 scores[i] += 1
             elif result == -1:
