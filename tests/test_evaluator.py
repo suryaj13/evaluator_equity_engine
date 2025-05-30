@@ -18,7 +18,6 @@ def deal(deck, num):
 def print_hand(label, cards):
     print(f"{label}:", " ".join(str(card) for card in cards))
 
-
 def describe_hand(hand):
     # Use evaluator to classify
     try:
@@ -67,8 +66,12 @@ def test_x_player_showdown(num_players=3):
     assert compare_hands(hands[0], duplicate_hand) == 0, "Identical hands should tie"
     print("Edge case passed: tie confirmed")
 
+def test_split_pot_scenario(self):
+    hero = ["Ah", "Kh"]
+    villain = [["Ah", "Kh"]]  # Same hand
+    equity = self.calc.calculate_equity(hero, villain, num_simulations=1000)
+
 if __name__ == "__main__":
-    import sys
     # Allow user to specify number of players via command line, default to 3
     num_players = int(sys.argv[1]) if len(sys.argv) > 1 else 3
     test_x_player_showdown(num_players=num_players)
